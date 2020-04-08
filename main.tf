@@ -62,6 +62,10 @@ resource "helm_release" "cert-manager" {
   depends_on = ["kubernetes_namespace.cert_manager"]
 }
 
+data "template_file" "cert_secret" {
+  template  = "${file("${path.module}/key.json")}"
+}
+
 // Creates secret with our client_secret inside. Is used to give cert-manager the permission to make an  acme-challenge to prove let's encrypt
 // that we are the owner of our domain
 resource "kubernetes_secret" "cert-manager-secret" {
@@ -69,9 +73,9 @@ resource "kubernetes_secret" "cert-manager-secret" {
     name      = "secret-google-config"
     namespace = "${kubernetes_namespace.cert_manager.metadata.0.name}"
   }
-
+  type = "Opaque"
   data = {
-    password = "${var.client_secret}"
+    "key.json" = "{data.template_file.cert_secret.template}"
   }
 }
 
@@ -80,13 +84,13 @@ data "template_file" "cert_manager_manifest" {
   template = "${file("${path.module}/cert-manager.yaml")}"
 
   vars = {
-    DOMAIN                     = "${var.root_domain}"
+    DOMAIN                     = var.root_domain
     PROJECT_ID                 = var.project_id
-    NAMESPACE                  = "${kubernetes_namespace.cert_manager.metadata.0.name}"
+    NAMESPACE                  = kubernetes_namespace.cert_manager.metadata.0.name
     CERT_NAME                  = "wildcard"
-    PASSWORD                   = "password"
-    SECRET_NAME                = "${kubernetes_secret.cert-manager-secret.metadata.0.name}"
-    EMAIL                      = "${var.lets_encrypt_email}"
+    PASSWORD                   = "key.json"
+    SECRET_NAME                = kubernetes_secret.cert-manager-secret.metadata.0.name
+    EMAIL                      = var.lets_encrypt_email
   }
 }
 

@@ -1,23 +1,5 @@
-############################################################################
-# Created Date: 08.10.2019                                                 #
-# Author: Fabius Engel (fabius.engel@msg.group)                            #
-# -----                                                                    #
-# Last Modified: 23.10.2019 09:29:46                                       #
-# Modified By: Michael Süssemilch (michael.suessemilch@msg.group)          #
-# -----                                                                    #
-# Copyright (c) 2019 msg nexinsure ag                                      #
-############################################################################
-
-variable "subscription_id" {}
-
-variable "client_id" {}
-
-variable "client_secret" {}
-
-variable "tenant_id" {}
-
-variable "resource_group_name" {
-  description = "The name of the resource group"
+variable "project_id" {
+  description = "The ID of the cloud project"
   type        = string
 }
 
@@ -28,11 +10,6 @@ variable "cluster_name" {
 
 variable "root_domain" {
   type = string
-}
-
-variable "dns_zone_resource_group" {
-  description = "The name of the resource group for DNS_Zone"
-  type        = string
 }
 
 variable "lets_encrypt_email" {
