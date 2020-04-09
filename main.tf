@@ -95,7 +95,7 @@ data "template_file" "cert_manager_manifest" {
   vars = {
     DOMAIN                     = var.root_domain
     PROJECT_ID                 = var.project_id
-    NAMESPACE                  = kubernetes_namespace.cert_manager.metadata.0.name
+    NAMESPACE                  = "default"
     CERT_NAME                  = "wildcard"
     PASSWORD                   = "key.json"
     SECRET_NAME                = kubernetes_secret.cert-manager-secret.metadata.0.name
