@@ -16,6 +16,15 @@ variable "lets_encrypt_email" {
   type = string
 }
 
+variable "location" {
+  type = string
+}
+
+variable "iam_account" {
+  description = "Account E-Mail of the Google Contributor account"
+  type = string
+}
+
 // variable "resources" {
 //   description = "The allocated resources for the module"
 //   type        = any

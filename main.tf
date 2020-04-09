@@ -62,8 +62,17 @@ resource "helm_release" "cert-manager" {
   depends_on = ["kubernetes_namespace.cert_manager"]
 }
 
+resource "null_resource" "create_key_json" {
+  provisioner "local-exec" {
+    command = "gcloud iam service-accounts keys create ${path.module}/key.json --iam-account ${var.iam_account}"
+  }
+  depends_on = [null_resource.get_kubectl]
+}
+
 data "template_file" "cert_secret" {
   template  = "${file("${path.module}/key.json")}"
+
+  depends_on = [null_resource.create_key_json]
 }
 
 // Creates secret with our client_secret inside. Is used to give cert-manager the permission to make an  acme-challenge to prove let's encrypt
