@@ -106,6 +106,6 @@ data "template_file" "cert_manager_manifest" {
 // Install our cert-manager template
 resource "null_resource" "install_k8s_resources" {
   provisioner "local-exec" {
-    command = "kubectl --context ${var.cluster_name} apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
+    command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
   }
 }
