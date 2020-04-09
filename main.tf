@@ -28,7 +28,7 @@ resource "null_resource" "get_kubectl" {
 // Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
 resource "null_resource" "install_crds" {
   provisioner "local-exec" {
-    command = "kubectl --context ${var.cluster_name} apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-${local.customResourceDefinition}/deploy/manifests/00-crds.yaml"
+    command = "kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-${local.customResourceDefinition}/deploy/manifests/00-crds.yaml"
   }
   depends_on = [null_resource.get_kubectl]
 }
