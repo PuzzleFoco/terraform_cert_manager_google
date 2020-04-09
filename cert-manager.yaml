@@ -20,7 +20,7 @@ spec:
             name: ${SECRET_NAME}
             key: ${PASSWORD}
 ---
-apiVersion: certmanager.k8s.io/v1alpha2
+apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
   name: ${CERT_NAME}
