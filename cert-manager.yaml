@@ -1,5 +1,5 @@
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: ClusterIssuer
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
 metadata:
   name: letsencrypt
   namespace: ${NAMESPACE}
@@ -20,7 +20,7 @@ spec:
             name: ${SECRET_NAME}
             key: ${PASSWORD}
 ---
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: ${CERT_NAME}
