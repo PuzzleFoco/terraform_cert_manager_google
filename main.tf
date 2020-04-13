@@ -10,8 +10,8 @@ terraform {
 
 // Describes the version of CustomResourceDefinition and Cert-Manager Helmchart
 locals {
-  customResourceDefinition = "0.10"
-  certManagerHelmVersion   = "v0.10.0"
+  customResourceDefinition = "v0.14.1"
+  certManagerHelmVersion   = "v0.14.1"
 
   // values_yaml_rendered = templatefile("./${path.module}/values.yaml.tpl", {
   //   resources = "${var.resources}"
@@ -28,7 +28,7 @@ resource "null_resource" "get_kubectl" {
 // Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
 resource "null_resource" "install_crds" {
   provisioner "local-exec" {
-    command = "kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-${local.customResourceDefinition}/deploy/manifests/00-crds.yaml"
+    command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
   }
   depends_on = [null_resource.get_kubectl]
 }
@@ -95,7 +95,7 @@ data "template_file" "cert_manager_manifest" {
   vars = {
     DOMAIN                     = var.root_domain
     PROJECT_ID                 = var.project_id
-    NAMESPACE                  = "default"
+    NAMESPACE                  = kubernetes_namespace.cert_manager.metadata.0.name
     CERT_NAME                  = "wildcard"
     PASSWORD                   = "key.json"
     SECRET_NAME                = kubernetes_secret.cert-manager-secret.metadata.0.name
