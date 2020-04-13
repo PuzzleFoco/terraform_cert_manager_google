@@ -84,7 +84,7 @@ resource "kubernetes_secret" "cert-manager-secret" {
   }
   type = "Opaque"
   data = {
-    "key.json" = "{data.template_file.cert_secret.template}"
+    "key.json" = data.template_file.cert_secret.template
   }
 }
 
@@ -109,4 +109,5 @@ resource "null_resource" "install_k8s_resources" {
   provisioner "local-exec" {
     command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
   }
+  depends_on = [kubernetes_secret.cert-manager-secret]
 }
