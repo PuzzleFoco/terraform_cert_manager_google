@@ -18,21 +18,6 @@ locals {
   // })
 }
 
-// ensures that the right kubeconfig is used local
-resource "null_resource" "get_kubectl" {
-  provisioner "local-exec" {
-    command = "gcloud container clusters get-credentials ${var.cluster_name} --region ${var.location} --project ${var.project_id}"
-  }
-}
-
-// Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
-resource "null_resource" "install_crds" {
-  provisioner "local-exec" {
-    command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
-  }
-  depends_on = [null_resource.get_kubectl]
-}
-
 // Creates Namespace for cert-manager. necessary to disable resource validation
 resource "kubernetes_namespace" "cert_manager" {
   metadata {
@@ -41,7 +26,22 @@ resource "kubernetes_namespace" "cert_manager" {
     }
     name = "cert-manager"
   }
-  depends_on = [null_resource.install_crds]
+}
+
+// ensures that the right kubeconfig is used local
+resource "null_resource" "get_kubectl" {
+  provisioner "local-exec" {
+    command = "gcloud container clusters get-credentials ${var.cluster_name} --region ${var.location} --project ${var.project_id}"
+  }
+  depends_on = [kubernetes_namespace.cert_manager]
+}
+
+// Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
+resource "null_resource" "install_crds" {
+  provisioner "local-exec" {
+    command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+  }
+  depends_on = [null_resource.get_kubectl]
 }
 
 // Adds jetsteck to helm repo
