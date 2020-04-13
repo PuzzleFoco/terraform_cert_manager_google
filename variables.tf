@@ -16,6 +16,12 @@ variable "lets_encrypt_email" {
   type = string
 }
 
+variable "acme_server_url" {
+  description = "The URL of the ACME Server like Lets Encrypt, default is staging Server. Use this for prod: https://acme-v02.api.letsencrypt.org/directory"
+  type        = string
+  default     = "https://acme-staging-v02.api.letsencrypt.org/directory"
+}
+
 variable "location" {
   type = string
 }

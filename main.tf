@@ -100,6 +100,7 @@ data "template_file" "cert_manager_manifest" {
     PASSWORD                   = "key.json"
     SECRET_NAME                = kubernetes_secret.cert-manager-secret.metadata.0.name
     EMAIL                      = var.lets_encrypt_email
+    ACME_SERVER_URL            = var.acme_server_url
   }
 }
 
