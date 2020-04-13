@@ -1,4 +1,4 @@
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
   name: letsencrypt
@@ -7,7 +7,8 @@ spec:
   acme:
     email: ${EMAIL}
     # server: https://acme-v02.api.letsencrypt.org/directory
-    server: https://acme-staging-v02.api.letsencrypt.org/directory #This is the staging Server from let's encrypt use it when trying things out
+    # https://acme-staging-v02.api.letsencrypt.org/directory #This is the staging Server from let's encrypt use it when trying things out
+    server: ${ACME_SERVER_URL}
     privateKeySecretRef:
       name: letsencrypt
     solvers:
@@ -20,7 +21,7 @@ spec:
             name: ${SECRET_NAME}
             key: ${PASSWORD}
 ---
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: ${CERT_NAME}
@@ -32,4 +33,5 @@ spec:
     name: letsencrypt
   commonName: '*.${DOMAIN}' 
   dnsNames:
+  - '*.${DOMAIN}'
   - ${DOMAIN}
