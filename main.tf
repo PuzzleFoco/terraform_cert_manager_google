@@ -39,7 +39,12 @@ resource "null_resource" "get_kubectl" {
 // Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
 resource "null_resource" "install_crds" {
   provisioner "local-exec" {
+    when "create"
     command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+  }
+  provisioner "local-exec" {
+    when "destroy"
+    command = "kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
   }
   depends_on = [null_resource.get_kubectl]
 }
@@ -107,7 +112,12 @@ data "template_file" "cert_manager_manifest" {
 // Install our cert-manager template
 resource "null_resource" "install_k8s_resources" {
   provisioner "local-exec" {
+    when "create" 
     command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
+  }
+  provisioner "local-exec" {
+    when "destroy"
+    command = "kubectl delete -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
   }
   depends_on = [kubernetes_secret.cert-manager-secret]
 }
