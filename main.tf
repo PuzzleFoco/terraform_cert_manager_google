@@ -5,6 +5,7 @@
 terraform {
   required_providers {
     helm = ">= 1.0.0"
+    k8s  = ">= 0.4.0"
   }
 }
 
@@ -36,13 +37,23 @@ resource "null_resource" "get_kubectl" {
   depends_on = [kubernetes_namespace.cert_manager]
 }
 
-// Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
-resource "null_resource" "install_crds" {
-  provisioner "local-exec" {
-    command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
-  }
+data "template_file" "install_crds" {
+  url = "https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+}
+
+resource "k8s_manifest" "cert_manager_crd" {
+  content = data.template_file.install_crds
+
   depends_on = [null_resource.get_kubectl]
 }
+
+// // Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
+// resource "null_resource" "install_crds" {
+//   provisioner "local-exec" {
+//     command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+//   }
+//   depends_on = [null_resource.get_kubectl]
+// }
 
 // Adds jetsteck to helm repo
 data "helm_repository" "jetstack" {
@@ -62,17 +73,17 @@ resource "helm_release" "cert-manager" {
   depends_on = ["kubernetes_namespace.cert_manager"]
 }
 
-resource "null_resource" "create_key_json" {
-  provisioner "local-exec" {
-    command = "gcloud iam service-accounts keys create ${path.module}/key.json --iam-account ${var.iam_account}"
-  }
-  depends_on = [null_resource.get_kubectl]
-}
+// resource "null_resource" "create_key_json" {
+//   provisioner "local-exec" {
+//     command = "gcloud iam service-accounts keys create ${path.module}/key.json --iam-account ${var.iam_account}"
+//   }
+//   depends_on = [null_resource.get_kubectl]
+// }
 
 data "template_file" "cert_secret" {
   template  = "${file("${path.module}/key.json")}"
 
-  depends_on = [null_resource.create_key_json]
+  depends_on = [k8s_manifest.cert_manager_crd]
 }
 
 // Creates secret with our client_secret inside. Is used to give cert-manager the permission to make an  acme-challenge to prove let's encrypt
@@ -104,10 +115,16 @@ data "template_file" "cert_manager_manifest" {
   }
 }
 
-// Install our cert-manager template
-resource "null_resource" "install_k8s_resources" {
-  provisioner "local-exec" {
-    command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
-  }
+resource "k8s_manifest" "install_k8s_resources" {
+  content = "${data.template_file.cert_manager_manifest.rendered}"
+
   depends_on = [kubernetes_secret.cert-manager-secret]
 }
+
+// Install our cert-manager template
+// resource "null_resource" "install_k8s_resources" {
+//   provisioner "local-exec" {
+//     command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
+//   }
+//   depends_on = [kubernetes_secret.cert-manager-secret]
+// }
