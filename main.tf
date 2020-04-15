@@ -5,7 +5,7 @@
 terraform {
   required_providers {
     helm = ">= 1.0.0"
-    k8s  = ">= 0.4.0"
+    k8s  = ">= 0.7.6"
   }
 }
 
