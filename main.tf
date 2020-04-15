@@ -38,7 +38,7 @@ resource "null_resource" "get_kubectl" {
 }
 
 data "template_file" "install_crds" {
-  template = "${file("github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml")}"
+  template = file("github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml")
 }
 
 resource "k8s_manifest" "cert_manager_crd" {
