@@ -42,7 +42,7 @@ data "template_file" "install_crds" {
 }
 
 resource "k8s_manifest" "cert_manager_crd" {
-  content = data.template_file.install_crds.body
+  content = data.template_file.install_crds
 
   depends_on = [null_resource.get_kubectl]
 }
