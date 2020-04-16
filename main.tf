@@ -78,7 +78,7 @@ resource "null_resource" "install_crds" {
 data "template_file" "cert_secret" {
   template  = "${file("${path.module}/key.json")}"
 
-  depends_on = [k8s_manifest.cert_manager_crd]
+  depends_on = [null_resource.create_key_json]
 }
 
 // Creates secret with our client_secret inside. Is used to give cert-manager the permission to make an  acme-challenge to prove let's encrypt
