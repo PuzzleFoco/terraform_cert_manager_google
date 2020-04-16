@@ -5,7 +5,7 @@
 terraform {
   required_providers {
     helm = ">= 1.0.0"
-    k8s  = ">= 0.7.6"
+    kubectl = ">= 1.3.3"
   }
 }
 
@@ -42,7 +42,7 @@ data "template_file" "install_crds" {
 }
 
 resource "k8s_manifest" "cert_manager_crd" {
-  content = data.template_file.install_crds
+  content = "${data.template_file.install_crds.rendered}"
 
   depends_on = [null_resource.get_kubectl]
 }
