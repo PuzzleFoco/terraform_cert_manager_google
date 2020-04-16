@@ -45,7 +45,7 @@ resource "null_resource" "create_key_json" {
 
 // Adds jetsteck to helm repo
 data "helm_repository" "jetstack" {
-  provider = "helm"
+  provider = helm
   name     = "jetstack"
   url      = "https://charts.jetstack.io"
 }
@@ -54,9 +54,9 @@ data "helm_repository" "jetstack" {
 resource "helm_release" "cert-manager" {
   name       = "cert-manager"
   namespace  = kubernetes_namespace.cert_manager.metadata[0].name
-  repository = "${data.helm_repository.jetstack.name}"
+  repository = data.helm_repository.jetstack.name
   chart      = "cert-manager"
-  version    = "${local.certManagerHelmVersion}"
+  version    = local.certManagerHelmVersion
 
   depends_on = [kubernetes_namespace.cert_manager]
 }
@@ -76,7 +76,7 @@ resource "null_resource" "install_crds" {
 }
 
 data "template_file" "cert_secret" {
-  template  = "${file("${path.module}/key.json")}"
+  template  = file("${path.module}/key.json")
 
   depends_on = [null_resource.create_key_json]
 }
@@ -86,7 +86,7 @@ data "template_file" "cert_secret" {
 resource "kubernetes_secret" "cert-manager-secret" {
   metadata {
     name      = "secret-google-config"
-    namespace = "${kubernetes_namespace.cert_manager.metadata.0.name}"
+    namespace = kubernetes_namespace.cert_manager.metadata.0.name
   }
   type = "Opaque"
   data = {
@@ -96,7 +96,7 @@ resource "kubernetes_secret" "cert-manager-secret" {
 
 // Creates a template file with all necessary variables for permission. This template contains a clusterissuer and a certificate
 data "template_file" "cert_manager_manifest" {
-  template = "${file("${path.module}/cert-manager.yaml")}"
+  template = file("${path.module}/cert-manager.yaml")
 
   vars = {
     DOMAIN                     = var.root_domain
