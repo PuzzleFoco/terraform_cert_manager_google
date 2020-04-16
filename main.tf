@@ -34,26 +34,14 @@ resource "null_resource" "get_kubectl" {
   provisioner "local-exec" {
     command = "gcloud container clusters get-credentials ${var.cluster_name} --region ${var.location} --project ${var.project_id}"
   }
-  depends_on = [kubernetes_namespace.cert_manager]
 }
 
-data "template_file" "install_crds" {
-  template = "https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+// Creates a JSON File with the credentials of the Google IAM-Account
+resource "null_resource" "create_key_json" {
+  provisioner "local-exec" {
+    command = "gcloud iam service-accounts keys create ${path.module}/key.json --iam-account ${var.iam_account}"
+  }
 }
-
-resource "k8s_manifest" "cert_manager_crd" {
-  content = "${data.template_file.install_crds.rendered}"
-
-  depends_on = [null_resource.get_kubectl]
-}
-
-// // Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
-// resource "null_resource" "install_crds" {
-//   provisioner "local-exec" {
-//     command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
-//   }
-//   depends_on = [null_resource.get_kubectl]
-// }
 
 // Adds jetsteck to helm repo
 data "helm_repository" "jetstack" {
@@ -70,15 +58,22 @@ resource "helm_release" "cert-manager" {
   chart      = "cert-manager"
   version    = "${local.certManagerHelmVersion}"
 
-  depends_on = ["kubernetes_namespace.cert_manager"]
+  depends_on = [kubernetes_namespace.cert_manager]
 }
 
-// resource "null_resource" "create_key_json" {
-//   provisioner "local-exec" {
-//     command = "gcloud iam service-accounts keys create ${path.module}/key.json --iam-account ${var.iam_account}"
-//   }
-//   depends_on = [null_resource.get_kubectl]
-// }
+// Install the CustomResourceDefinition resources separately (requiered for Cert-Manager) 
+resource "null_resource" "install_crds" {
+  provisioner "local-exec" {
+    when    = create
+    command = "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+  }
+  depends_on = [null_resource.get_kubectl, helm_release.cert-manager]
+}
 
 data "template_file" "cert_secret" {
   template  = "${file("${path.module}/key.json")}"
@@ -115,16 +110,10 @@ data "template_file" "cert_manager_manifest" {
   }
 }
 
-resource "k8s_manifest" "install_k8s_resources" {
-  content = "${data.template_file.cert_manager_manifest.rendered}"
-
-  depends_on = [kubernetes_secret.cert-manager-secret]
-}
-
 // Install our cert-manager template
-// resource "null_resource" "install_k8s_resources" {
-//   provisioner "local-exec" {
-//     command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
-//   }
-//   depends_on = [kubernetes_secret.cert-manager-secret]
-// }
+resource "null_resource" "install_k8s_resources" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
+  }
+  depends_on = [null_resource.install_crds]
+}
