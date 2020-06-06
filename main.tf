@@ -50,7 +50,7 @@ resource "null_resource" "create_key_json" {
   }
   provisioner "local-exec" {
     when    = destroy
-    command = "truncate -s 0 ${path.module}/key.json"
+    command = "private_key_id=$(jq -r .private_key_id ${path.module}/key.json) && client_email=$(jq -r .client_email ${path.module}/key.json) && gcloud iam service-accounts keys delete $private_key_id --iam-account $client_email --quiet && truncate -s 0 ${path.module}/key.json"
   }
 }
 
