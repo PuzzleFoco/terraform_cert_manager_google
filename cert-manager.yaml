@@ -7,7 +7,7 @@ spec:
   acme:
     email: ${EMAIL}
     # server: https://acme-v02.api.letsencrypt.org/directory
-    # https://acme-staging-v02.api.letsencrypt.org/directory #This is the staging Server from let's encrypt use it when trying things out
+    https://acme-staging-v02.api.letsencrypt.org/directory #This is the staging Server from let's encrypt use it when trying things out
     server: ${ACME_SERVER_URL}
     privateKeySecretRef:
       name: letsencrypt
