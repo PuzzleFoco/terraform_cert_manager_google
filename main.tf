@@ -32,12 +32,12 @@ resource "null_resource" "get_kubectl" {
 resource "null_resource" "install_crds" {
   provisioner "local-exec" {
     when    = create
-    command = "kubectl apply --context ${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+    command = "kubectl apply --cluster ${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
   }
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete --context ${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+    command = "kubectl delete --cluster ${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
   }
   depends_on = [null_resource.get_kubectl]
 }
@@ -109,11 +109,11 @@ data "template_file" "cert_manager_manifest" {
 resource "null_resource" "install_k8s_resources" {
   provisioner "local-exec" {
     when    = create
-    command = "kubectl apply --context ${var.cluster_name} -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
+    command = "kubectl apply --cluster ${var.cluster_name} -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
   }
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete --context ${var.cluster_name} -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
+    command = "kubectl delete --cluster ${var.cluster_name} -f -<<EOL\n${data.template_file.cert_manager_manifest.rendered}\nEOL"
   }
   depends_on = [null_resource.install_crds]
 }
