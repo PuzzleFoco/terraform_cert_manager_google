@@ -32,12 +32,12 @@ resource "null_resource" "get_kubectl" {
 resource "null_resource" "install_crds" {
   provisioner "local-exec" {
     when    = create
-    command = "kubectl apply --cluster gke_${var.project_id}_${var.location}_${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+    command = "kubectl apply --cluster gke_${var.project_id}_${var.location}_${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.crds.yaml"
   }
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete --cluster gke_${var.project_id}_${var.location}_${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.yaml"
+    command = "kubectl delete --cluster gke_${var.project_id}_${var.location}_${var.cluster_name} -f https://github.com/jetstack/cert-manager/releases/download/${local.customResourceDefinition}/cert-manager.crds.yaml"
   }
   depends_on = [null_resource.get_kubectl]
 }
