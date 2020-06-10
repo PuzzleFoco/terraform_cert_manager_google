@@ -58,7 +58,7 @@ resource "kubernetes_secret" "cert-manager-secret" {
     namespace = kubernetes_namespace.cert_manager.metadata.0.name
   }
   data = {
-    "key.json" = base64decode(google_service_account_key.mykey.private_key)
+    "key.json" = base64decode(google_service_account_key.certkey.private_key)
   }
 }
 # resource "null_resource" "create_key_json" {
