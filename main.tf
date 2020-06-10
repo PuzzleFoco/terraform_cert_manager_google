@@ -44,8 +44,7 @@ resource "null_resource" "install_crds" {
 
 // Creates a JSON File with the credentials of the Google IAM-Account
 resource "google_service_account" "certaccount" {
-  service_account_id   = var.iam_account
-  display_name = "Cert Service Account"
+  account_id   = "test123"
 }
 
 resource "google_service_account_key" "certkey" {
