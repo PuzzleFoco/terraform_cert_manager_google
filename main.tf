@@ -5,6 +5,7 @@
 terraform {
   required_providers {
     helm = ">= 1.0.0"
+    google
   }
 }
 
@@ -44,7 +45,7 @@ resource "null_resource" "install_crds" {
 
 // Creates a JSON File with the credentials of the Google IAM-Account
 resource "google_service_account" "certaccount" {
-  account_id   = "certaccount"
+  account_id   = "terraform"
   display_name = "Cert Service Account"
 }
 
