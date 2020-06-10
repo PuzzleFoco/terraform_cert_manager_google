@@ -5,6 +5,7 @@
 terraform {
   required_providers {
     helm = ">= 1.0.0"
+    google = ">= 3.25.0"
   }
 }
 
