@@ -49,7 +49,7 @@ data "google_service_account" "service_account" {
 }
 
 resource "google_service_account_key" "certkey" {
-  service_account_id = google_service_account.service_account.name
+  service_account_id = data.google_service_account.service_account.name
 }
 
 resource "kubernetes_secret" "cert-manager-secret" {
