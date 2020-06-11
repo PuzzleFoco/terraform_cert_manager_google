@@ -46,6 +46,7 @@ resource "null_resource" "install_crds" {
 // Creates a JSON File with the credentials of the Google IAM-Account
 data "google_service_account" "service_account" {
   account_id = "terraform"
+  project    = "masterthesisproject1234"
 }
 
 resource "google_service_account_key" "certkey" {
