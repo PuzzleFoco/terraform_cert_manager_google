@@ -5,6 +5,7 @@
 terraform {
   required_providers {
     helm = ">= 1.0.0"
+    google = ">= 3.25.0"
   }
 }
 
@@ -43,14 +44,22 @@ resource "null_resource" "install_crds" {
 }
 
 // Creates a JSON File with the credentials of the Google IAM-Account
-resource "null_resource" "create_key_json" {
-  provisioner "local-exec" {
-    when    = create
-    command = "gcloud iam service-accounts keys create ${path.module}/key.json --iam-account ${var.iam_account}"
+data "google_service_account" "service_account" {
+  account_id = var.account_id
+  project    = var.project_id
+}
+
+resource "google_service_account_key" "certkey" {
+  service_account_id = data.google_service_account.service_account.name
+}
+
+resource "kubernetes_secret" "cert-manager-secret" {
+  metadata {
+    name = "cert-credentials"
+    namespace = kubernetes_namespace.cert_manager.metadata.0.name
   }
-  provisioner "local-exec" {
-    when    = destroy
-    command = "private_key_id=$(jq -r .private_key_id ${path.module}/key.json) && client_email=$(jq -r .client_email ${path.module}/key.json) && gcloud iam service-accounts keys delete $private_key_id --iam-account $client_email --quiet && truncate -s 0 ${path.module}/key.json"
+  data = {
+    "key.json" = base64decode(google_service_account_key.certkey.private_key)
   }
 }
 
@@ -68,25 +77,6 @@ resource "helm_release" "cert-manager" {
   repository = data.helm_repository.jetstack.url
   chart      = "cert-manager"
   version    = local.certManagerHelmVersion
-}
-
-data "template_file" "cert_secret" {
-  template  = file("${path.module}/key.json")
-
-  depends_on = [null_resource.create_key_json]
-}
-
-// Creates secret with our client_secret inside. Is used to give cert-manager the permission to make an  acme-challenge to prove let's encrypt
-// that we are the owner of our domain
-resource "kubernetes_secret" "cert-manager-secret" {
-  metadata {
-    name      = "secret-google-config"
-    namespace = kubernetes_namespace.cert_manager.metadata.0.name
-  }
-  type = "Opaque"
-  data = {
-    "key.json" = data.template_file.cert_secret.template
-  }
 }
 
 // Creates a template file with all necessary variables for permission. This template contains a clusterissuer and a certificate
