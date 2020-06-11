@@ -44,13 +44,12 @@ resource "null_resource" "install_crds" {
 }
 
 // Creates a JSON File with the credentials of the Google IAM-Account
-resource "google_service_account" "certaccount" {
-  account_id   = "certaccount"
-  project      = "masterthesisproject1234"
+data "google_service_account" "service_account" {
+  account_id = "terraform"
 }
 
 resource "google_service_account_key" "certkey" {
-  service_account_id = google_service_account.certaccount.name
+  service_account_id = google_service_account.service_account.name
 }
 
 resource "kubernetes_secret" "cert-manager-secret" {
